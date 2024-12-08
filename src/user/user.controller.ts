@@ -3,20 +3,22 @@ import { UserService } from './user.service';
 import { CreateUserDto } from 'src/dtos/user/create-user.dto';
 import { UpdateUserDto } from 'src/dtos/user/update-user.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { ApiSecurity } from '@nestjs/swagger';
 
 @Controller('users')
 export class UserController {
     constructor(private userService: UserService) {}
 
-    @UseGuards(JwtAuthGuard)
     @Get()
+    @ApiSecurity("JWT-auth")
+    @UseGuards(JwtAuthGuard)
     async getAllUsers() {
         return this.userService.findAll();
     }
 
     @Post()
     async createUser(@Body() body: CreateUserDto) {
-        body.email.toLowerCase()
+        body.email = body.email.toLowerCase()
         return this.userService.create(body);
     }
 
@@ -25,18 +27,20 @@ export class UserController {
         return this.userService.findOne(id);
     }
 
-    @UseGuards(JwtAuthGuard)
     @Put(':id')
+    @ApiSecurity("JWT-auth")
+    @UseGuards(JwtAuthGuard)
     async updateUser(
         @Param('id') id: string,
         @Body() body: UpdateUserDto
     ) {
-        if(body.email) body.email.toLowerCase()
+        if(body.email) body.email = body.email.toLowerCase()
         return this.userService.update(id, body);
     }
 
-    @UseGuards(JwtAuthGuard)
     @Delete(':id')
+    @ApiSecurity("JWT-auth")
+    @UseGuards(JwtAuthGuard)
     async deleteUserById(@Param('id') id: string) {
         return this.userService.remove(id);
     }

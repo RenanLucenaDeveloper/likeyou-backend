@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './user.entity';
 import { Repository } from 'typeorm';
@@ -17,6 +17,19 @@ export class UserService {
     }
 
     async create(userDto: CreateUserDto): Promise<User> {
+        // Verifica email
+        const checkEmail = await this.userRepository.findOneBy({ email: userDto.email })
+        if(checkEmail) throw new BadRequestException('Este email já está em uso!');
+        
+        // Verifica CPF
+        const checkCpf = await this.userRepository.findOneBy({ cpf: userDto.cpf })
+        if(checkCpf) throw new BadRequestException('Este CPF já está em uso!');
+        
+        // Verifica Celular
+        const checkPhone = await this.userRepository.findOneBy({ phone: userDto.phone })
+        if(checkPhone) throw new BadRequestException('Este telefone já está em uso!');
+
+
         // crypt da senha
         const salt = await bcrypt.genSalt();
         userDto.password = await bcrypt.hash(userDto.password, salt);
@@ -24,7 +37,22 @@ export class UserService {
         // create user
         const user = this.userRepository.create(userDto)
 
-        return this.userRepository.save(user)
+        try {
+            return this.userRepository.save(user)
+        } catch (error) {
+            if (error.code === '23505') { // PostgreSQL: Violação de chave única
+                if (error.detail.includes('email')) {
+                    throw new NotFoundException('Este email já está em uso!');
+                }
+                if (error.detail.includes('cpf')) {
+                    throw new NotFoundException('Este CPF já está em uso!');
+                }
+                if (error.detail.includes('phone')) {
+                    throw new NotFoundException('Este telefone já está em uso!');
+                }
+            }
+            throw error;
+        }
     }
 
     async findOne(id: string): Promise<User> {
