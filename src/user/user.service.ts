@@ -33,7 +33,7 @@ export class UserService {
         // crypt da senha
         const salt = await bcrypt.genSalt();
         userDto.password = await bcrypt.hash(userDto.password, salt);
-        
+
         // create user
         const user = this.userRepository.create(userDto)
 
