@@ -38,9 +38,14 @@ export class UserController {
     @Get('feed/:id')
     async feedLogged(@Param('id') id: string) {
         let feed = await this.userService.feed();
-        if(id) feed = feed.filter(i => i.id !== id)
 
-        return Promise.all(feed)
+        if (id) {
+            feed = feed.filter((user) => user.id !== id);    
+            // Adiciona feedbacks dados pelo usuário logado
+            feed = await this.userService.addGivenFeedbacks(id, feed);
+        }
+    
+        return feed;
     }
 
     @Put(':id')

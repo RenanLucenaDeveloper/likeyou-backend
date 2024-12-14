@@ -95,6 +95,39 @@ export class UserService {
         return Promise.all(users.map(addFeedbacks))
     }
 
+    async addGivenFeedbacks(fromUserId: string, users: any[]): Promise<any[]> {
+        const userIds = users.map((user) => user.id);
+    
+        // Consulta os feedbacks dados pelo usuário logado
+        const feedbacks = await this.FeedbackService.getGivenFeedbacks(fromUserId, userIds)
+
+        console.log('Feedbacks brutos retornados:', feedbacks);
+    
+        // Mapeia feedbacks por usuário para anexar ao retorno
+        const feedbackMap = feedbacks.reduce((map, feedback) => {
+            // Use o console.log para depurar os campos de cada feedback
+            console.log('Processando feedback:', feedback);
+        
+            const toUserId = feedback.touserid; // Certifique-se de usar o nome correto
+            if (!toUserId) {
+                console.warn('toUserId está vazio ou undefined:', feedback);
+                return map; // Ignora entradas inválidas
+            }
+        
+            // Adiciona o feedback no mapa
+            map[toUserId] = feedback.feedback;
+            return map;
+        }, {});
+
+        console.log('Mapa de feedbacks:', feedbackMap);
+    
+        // Atualiza os usuários com os feedbacks dados
+        return users.map((user) => ({
+            ...user,
+            givenFeedback: feedbackMap[String(user.id)] || null, // Feedback dado ou `null`
+        }));
+    }
+
     async update(id: string, userDto: UpdateUserDto): Promise<User> {
         const user = await this.userRepository.findOneBy({ id })
 

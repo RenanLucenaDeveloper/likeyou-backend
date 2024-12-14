@@ -25,4 +25,13 @@ export class FeedbackService {
   async getFeedbackCounts(userId: string): Promise<{ likes: number; dislikes: number }> {
     return await this.FeedbackRepository.getFeedbackCounts(userId);
   }
+
+  async getGivenFeedbacks(fromUserId: string, userIds: any[]): Promise<any> {
+    return await this.FeedbackRepository
+      .createQueryBuilder('feedback')
+      .select(['feedback.toUserId AS toUserId', 'feedback.feedback AS feedback'])
+      .where('feedback.fromUserId = :fromUserId', { fromUserId })
+      .andWhere('feedback.toUserId IN (:...userIds)', { userIds })
+      .getRawMany();
+  }
 }
