@@ -4,6 +4,7 @@ import { CreateUserDto } from 'src/dtos/user/create-user.dto';
 import { UpdateUserDto } from 'src/dtos/user/update-user.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { ApiSecurity } from '@nestjs/swagger';
+import { ResumedUserType } from 'src/types/resumed-user.type';
 
 @Controller('users')
 export class UserController {
@@ -22,9 +23,24 @@ export class UserController {
         return this.userService.create(body);
     }
 
-    @Get(':id')
+    @Get('by-id/:id')
     async getUserById(@Param('id') id: string) {
         return this.userService.findOne(id);
+    }
+
+    // Para user deslogado
+    @Get('feed')
+    async feed() {
+        return this.userService.feed();
+    }
+    
+    // Para user logado
+    @Get('feed/:id')
+    async feedLogged(@Param('id') id: string) {
+        let feed = await this.userService.feed();
+        if(id) feed = feed.filter(i => i.id !== id)
+
+        return Promise.all(feed)
     }
 
     @Put(':id')

@@ -12,4 +12,10 @@ export class UpdateUserDto {
 
     @IsOptional()
     phone: string
+
+    @IsOptional()
+    description: string;
+
+    @IsOptional()
+    password: string;
 }

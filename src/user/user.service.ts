@@ -1,15 +1,17 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './user.entity';
-import { Repository } from 'typeorm';
 import { CreateUserDto } from 'src/dtos/user/create-user.dto';
 import { UpdateUserDto } from 'src/dtos/user/update-user.dto';
 import * as bcrypt from 'bcrypt';
+import { UserRepository } from './user.repository';
+import { ResumedUserType } from 'src/types/resumed-user.type';
+import { FeedbackService } from 'src/feedback/feedback.service';
 
 @Injectable()
 export class UserService {
     constructor(
-        @InjectRepository(User) private userRepository: Repository<User>
+        private readonly userRepository: UserRepository,
+        private readonly FeedbackService: FeedbackService,
     ) {}
 
     findAll() {
@@ -73,6 +75,24 @@ export class UserService {
         }
 
         return user
+    }
+
+    async feed(): Promise<ResumedUserType[]> {
+        // Pega 6 users
+        const users = await this.userRepository
+          .createQueryBuilder()
+          .orderBy('RANDOM()')
+          .limit(6)
+          .getMany()
+
+        // callback para pegar os feedbacks
+        const addFeedbacks = async ({name, id, description, profileImage}) => {
+            const feedbacks = await this.FeedbackService.getFeedbackCounts(id);
+            return { name, id, description, profileImage, feedbacks };
+        };
+
+        // Retorna os 6 users depois de usar o callback em cada um
+        return Promise.all(users.map(addFeedbacks))
     }
 
     async update(id: string, userDto: UpdateUserDto): Promise<User> {
