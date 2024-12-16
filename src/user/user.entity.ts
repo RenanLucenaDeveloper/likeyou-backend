@@ -24,6 +24,9 @@ export class User {
   profileImage: string;
 
   @Column({ default: '' })
+  shortDescription: string;
+
+  @Column({ default: '' })
   description: string;
 
   @CreateDateColumn()

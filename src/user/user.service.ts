@@ -86,9 +86,9 @@ export class UserService {
           .getMany()
 
         // callback para pegar os feedbacks
-        const addFeedbacks = async ({name, id, description, profileImage}) => {
+        const addFeedbacks = async ({name, id, shortDescription, profileImage}) => {
             const feedbacks = await this.FeedbackService.getFeedbackCounts(id);
-            return { name, id, description, profileImage, feedbacks };
+            return { name, id, shortDescription, profileImage, feedbacks };
         };
 
         // Retorna os 6 users depois de usar o callback em cada um
@@ -101,16 +101,16 @@ export class UserService {
         // Consulta os feedbacks dados pelo usuário logado
         const feedbacks = await this.FeedbackService.getGivenFeedbacks(fromUserId, userIds)
 
-        console.log('Feedbacks brutos retornados:', feedbacks);
+        // console.log('Feedbacks brutos retornados:', feedbacks);
     
         // Mapeia feedbacks por usuário para anexar ao retorno
         const feedbackMap = feedbacks.reduce((map, feedback) => {
             // Use o console.log para depurar os campos de cada feedback
-            console.log('Processando feedback:', feedback);
+            // console.log('Processando feedback:', feedback);
         
             const toUserId = feedback.touserid; // Certifique-se de usar o nome correto
             if (!toUserId) {
-                console.warn('toUserId está vazio ou undefined:', feedback);
+                // console.warn('toUserId está vazio ou undefined:', feedback);
                 return map; // Ignora entradas inválidas
             }
         
@@ -119,7 +119,7 @@ export class UserService {
             return map;
         }, {});
 
-        console.log('Mapa de feedbacks:', feedbackMap);
+        // console.log('Mapa de feedbacks:', feedbackMap);
     
         // Atualiza os usuários com os feedbacks dados
         return users.map((user) => ({
@@ -139,13 +139,13 @@ export class UserService {
         return this.userRepository.save(user)
     }
 
-    async remove(id: string): Promise<void> {
+    async remove(id: string): Promise<any> {
         const user = await this.userRepository.findOneBy({ id })
 
         if(!user) {
             throw new NotFoundException('Usuário não encontrado');
         }
 
-        await this.userRepository.delete(user)
+        return await this.userRepository.delete(user)
     }
 }
